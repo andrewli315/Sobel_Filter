@@ -20,14 +20,16 @@ int main(){
     }
     int width = image->width;
     int height= image->height;
+    int sum_x,sum_y;
 
     clone = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
     result_x = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
     result_y = cvCreateImage(cvSize(width,height),IPL_DEPTH_8U,1);
+    
+    //convert to gray image
     cvCvtColor(image,clone,CV_BGR2GRAY);
-    int sum_x,sum_y; 
-    int step = clone->widthStep/sizeof(uchar);
-    for (int i =1;i < height-2 ; i++ )
+
+    for (int i =1; i < height-2 ; i++ )
     {
         
         for( int j = 1; j< width-2 ; j++ )
@@ -38,13 +40,11 @@ int main(){
             {
                 for (int q = 0; q < 3 ; q++)
                 {
-                    uchar* data = (uchar*)clone->imageData;
-                    int pixelval = data[(i+p)*step+j+q] ;
-                    sum_x +=  ((uchar*)(clone->imageData + (i+p)*clone->widthStep ))[ j + q ] * sobel_x[q][p];
-                    sum_y += pixelval * sobel_y[q][p];
+                    sum_x += ((uchar*)(clone->imageData + (i+p)*clone->widthStep ))[ j + q ] * sobel_x[q][p];
+                    sum_y += ((uchar*)(clone->imageData + (i+p)*clone->widthStep ))[ j + q ] * sobel_y[q][p];
                 }
             }
-            
+            //eliminate some noise on image        
             sum_x = abs(sum_x);
             sum_x = sum_x > 255 ? 255 : sum_x;
             sum_x = sum_x < 180 ? 0 : sum_x;
@@ -52,13 +52,12 @@ int main(){
             sum_y = abs(sum_y);
             sum_y = sum_y > 255 ? 255 : sum_y;
             sum_y = sum_y < 180 ? 0 : sum_y;
-
+            
             ((uchar*)( result_x->imageData + i * result_x->widthStep))[ j ] = sum_x;
             ((uchar*)( result_y->imageData + i * result_y->widthStep))[ j ] = sum_y;
         }
     }
     
-    //((uchar *)(iplObj->imageData + y*iplObj->widthStep))[x*iplObj->nChannels + 0] = B;    
     cvNamedWindow("sobel_x",0);    
     cvShowImage("sobel_x",result_x);
     cvNamedWindow("sobel_y",0);    
